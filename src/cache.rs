@@ -9,7 +9,7 @@ use tokio::sync::RwLock;
 use crate::error::CacheError;
 
 #[derive(Debug, Clone)]
-struct CacheEntry<T: Clone> {
+pub struct CacheEntry<T: Clone> {
     timestamp: DateTime<Utc>,
     data: T,
 }
@@ -17,7 +17,7 @@ struct CacheEntry<T: Clone> {
 #[derive(Debug)]
 pub struct GustCache<T: Clone> {
     cache: RwLock<HashMap<u64, CacheEntry<T>>>,
-    ttl: chrono::TimeDelta,
+    ttl: chrono::Duration,
 }
 
 impl<T: Clone> GustCache<T> {
