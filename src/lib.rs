@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
-mod cache;
-mod error;
+pub mod cache;
+pub mod error;
 
 pub use cache::*;
 pub use error::*;
