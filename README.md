@@ -33,8 +33,6 @@ Pass in a key (hashed internally) and a fallback function for cache misses.
 If a valid cached value exists, it’s returned instantly. Otherwise, the fallback runs (e.g., hitting your database).
 
 ```rust
-let spinners = state
-    .get_spin_cache()
-    .get(&request, || get_spin_page(state.get_pool(), &request))
+let spinners = CACHE.get(&request, || get_spin_page(state.get_pool(), &request))
     .await?;
 ```
