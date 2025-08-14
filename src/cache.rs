@@ -51,9 +51,9 @@ impl<T: Clone> GustCache<T> {
         };
     }
 
-    pub async fn get<F, TKey>(&self, req: &TKey, db_fn: F) -> Result<T, CacheError>
+    pub async fn get<F, TKey, E>(&self, req: &TKey, db_fn: F) -> Result<T, E>
     where
-        F: AsyncFnOnce() -> Result<T, CacheError>,
+        F: AsyncFnOnce() -> Result<T, E>,
         TKey: Hash,
     {
         let key = self.generate_hash(req);
