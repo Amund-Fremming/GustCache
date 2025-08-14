@@ -4,12 +4,11 @@ use std::{
 };
 
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
 use crate::cache_error::CacheError;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Clone)]
 struct CacheEntry<T: Clone> {
     timestamp: DateTime<Utc>,
     data: T,

@@ -5,7 +5,5 @@ edition = "2024"
 
 [dependencies]
 chrono = { version = "*", features = ["serde"] }
-serde = { version = "*", features = ["derive"] }
-serde_json = "*"
 thiserror = "*"
 tokio = { version = "*", features = ["full"] }
