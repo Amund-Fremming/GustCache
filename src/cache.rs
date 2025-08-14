@@ -6,8 +6,6 @@ use std::{
 use chrono::{DateTime, Utc};
 use tokio::sync::RwLock;
 
-use crate::error::CacheError;
-
 #[derive(Debug, Clone)]
 pub struct CacheEntry<T: Clone> {
     timestamp: DateTime<Utc>,
