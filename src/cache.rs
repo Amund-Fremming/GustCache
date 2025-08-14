@@ -14,6 +14,7 @@ struct CacheEntry<T: Clone> {
     data: T,
 }
 
+#[derive(Debug)]
 pub struct GustCache<T: Clone> {
     cache: RwLock<HashMap<u64, CacheEntry<T>>>,
     ttl: chrono::TimeDelta,
