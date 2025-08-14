@@ -23,6 +23,8 @@ gustcache = { git = "https://github.com/Amund-Fremming/GustCache.git" }
 use gustcache::GustCache;
 
 let spin_cache = GustCache::from_ttl(chrono::Duration::minutes(2));
+// or
+let spin_cache = GustCache::new();
 ```
 
 ### 3. Use it
