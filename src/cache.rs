@@ -6,7 +6,7 @@ use std::{
 use chrono::{DateTime, Utc};
 use tokio::sync::RwLock;
 
-use crate::cache_error::CacheError;
+use crate::error::CacheError;
 
 #[derive(Debug, Clone)]
 struct CacheEntry<T: Clone> {
@@ -14,7 +14,6 @@ struct CacheEntry<T: Clone> {
     data: T,
 }
 
-#[derive(Debug)]
 pub struct GustCache<T: Clone> {
     cache: RwLock<HashMap<u64, CacheEntry<T>>>,
     ttl: chrono::TimeDelta,
