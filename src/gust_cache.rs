@@ -22,12 +22,14 @@ pub struct GustCache<T: Clone> {
 }
 
 impl<T: Clone> GustCache<T> {
-    pub fn new(lifetime: Option<chrono::TimeDelta>) -> Self {
-        let ttl = match lifetime {
-            Some(time) => time,
-            None => chrono::Duration::minutes(2),
-        };
+    pub fn new() -> Self {
+        Self {
+            cache: RwLock::new(HashMap::new()),
+            ttl: chrono::Duration::minutes(2),
+        }
+    }
 
+    pub fn from_ttl(ttl: chrono::Duration) -> Self {
         Self {
             cache: RwLock::new(HashMap::new()),
             ttl,
@@ -44,8 +46,10 @@ impl<T: Clone> GustCache<T> {
     }
 
     pub async fn invalidate(&mut self) {
-        let fresh_cache = GustCache::new(Some(self.ttl));
-        *self = fresh_cache
+        *self = GustCache {
+            cache: RwLock::new(HashMap::new()),
+            ttl: chrono::Duration::minutes(2),
+        };
     }
 
     pub async fn get<F, TKey>(&self, req: &TKey, db_fn: F) -> Result<T, CacheError>
