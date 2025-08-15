@@ -1,15 +1,12 @@
-use std::{
-    collections::HashMap,
-    hash::{DefaultHasher, Hash, Hasher},
-};
+use std::{collections::HashMap, hash::Hash};
 
 use chrono::{DateTime, Utc};
 use tokio::sync::RwLock;
 
-use crate::error::CacheError;
+use crate::generate_hash;
 
 #[derive(Debug, Clone)]
-pub struct CacheEntry<T: Clone> {
+struct CacheEntry<T: Clone> {
     timestamp: DateTime<Utc>,
     data: T,
 }
@@ -35,15 +32,6 @@ impl<T: Clone> GustCache<T> {
         }
     }
 
-    fn generate_hash<TKey>(&self, value: &TKey) -> u64
-    where
-        TKey: Hash,
-    {
-        let mut hasher = DefaultHasher::new();
-        value.hash(&mut hasher);
-        hasher.finish()
-    }
-
     pub async fn invalidate(&mut self) {
         *self = GustCache {
             cache: RwLock::new(HashMap::new()),
@@ -51,12 +39,12 @@ impl<T: Clone> GustCache<T> {
         };
     }
 
-    pub async fn get<F, TKey, E>(&self, req: &TKey, db_fn: F) -> Result<T, E>
+    pub async fn get_or<F, TKey, E>(&self, req: &TKey, on_failure: F) -> Result<T, E>
     where
         F: AsyncFnOnce() -> Result<T, E>,
         TKey: Hash,
     {
-        let key = self.generate_hash(req);
+        let key = generate_hash(req);
         let mut map = self.cache.write().await;
 
         if let Some(entry) = map.get_mut(&key) {
@@ -68,7 +56,7 @@ impl<T: Clone> GustCache<T> {
         // Release lock while db operation finishes
         drop(map);
 
-        let data = db_fn().await?;
+        let data = on_failure().await?;
         let cache_entry = CacheEntry {
             data: data.clone(),
             timestamp: Utc::now(),
@@ -78,5 +66,9 @@ impl<T: Clone> GustCache<T> {
         map.insert(key, cache_entry.clone());
 
         Ok(data)
+    }
+
+    pub async fn try_get() {
+        todo!();
     }
 }
