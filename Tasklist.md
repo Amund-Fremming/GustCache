@@ -1,6 +1,7 @@
 # Tasklist
 
-- [ ] Is the key good? will two structs hit the same entry? every time?
-- [ ] Background cleanup task for removing outdated entries
-- [ ] implement try_get
-- [ ] implement insert
+- [ ] Group repo in folders
+- [ ] Test for cache
+- [ ] Support for stopping the cleanup thread (Use this before spawning a new task in the invalidate)
+- [ ] Support for passing in cleanup times ??
+- [ ] Take use of error please
