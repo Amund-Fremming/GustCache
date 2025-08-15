@@ -1,4 +1,4 @@
-# Gust Cache 🦀
+# 🦀 Gust Cache
 
 ![gust-mascot](https://png.pngtree.com/png-vector/20240805/ourmid/pngtree-sticker-of-a-cartoon-gust-of-wind-png-image_13078480.png)
 

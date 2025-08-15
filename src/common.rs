@@ -1,6 +1,6 @@
 use std::hash::{DefaultHasher, Hash, Hasher};
 
-pub fn generate_hash<T>(value: T) -> u64
+pub fn generate_hash<T>(value: &T) -> u64
 where
     T: Hash,
 {
