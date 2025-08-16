@@ -55,8 +55,10 @@ impl<T: Clone + Send + Sync> GustCache<T> {
         if let Some(entry) = lock.get_mut(&key) {
             if entry.timestamp + self.ttl > Utc::now() {
                 entry.timestamp = Utc::now();
+                return Ok(entry.value.clone());
             }
         };
+
         // Release lock while db operation finishes
         drop(lock);
 
@@ -112,7 +114,7 @@ impl<T: Clone + Send + Sync> GustCache<T> {
                 let now = Utc::now();
                 lock.retain(|_, value| now < value.timestamp + offset);
 
-                // Drop lock to stop deadlock
+                // Drop lock to avoid deadlocks
                 drop(lock);
             }
         });
