@@ -28,10 +28,12 @@ impl<T: Clone + Send + Sync> GustCache<T> {
     }
 
     pub fn from_ttl(ttl: chrono::Duration) -> Self {
-        Self {
+        let cache = Self {
             cache: Arc::new(RwLock::new(HashMap::new())),
             ttl,
-        }
+        };
+        cache.spawn_cleanup();
+        cache
     }
 
     pub async fn invalidate(&mut self) {
@@ -48,7 +50,7 @@ impl<T: Clone + Send + Sync> GustCache<T> {
         F: AsyncFnOnce() -> Result<T, E>,
         K: Hash,
     {
-        let key = generate_hash(&key);
+        let key = generate_hash(key);
         let mut lock = self.cache.write().await;
         if let Some(entry) = lock.get_mut(&key) {
             if entry.timestamp + self.ttl > Utc::now() {
@@ -70,11 +72,11 @@ impl<T: Clone + Send + Sync> GustCache<T> {
         Ok(data)
     }
 
-    pub async fn insert<K>(&self, key: K, value: T)
+    pub async fn insert<K>(&self, key: &K, value: T)
     where
         K: Hash,
     {
-        let key = generate_hash(&key);
+        let key = generate_hash(key);
         let mut lock = self.cache.write().await;
         let cache_entry = CacheEntry {
             timestamp: Utc::now(),
@@ -83,11 +85,11 @@ impl<T: Clone + Send + Sync> GustCache<T> {
         lock.insert(key, cache_entry);
     }
 
-    pub async fn try_get<K>(&self, key: K) -> Option<T>
+    pub async fn try_get<K>(&self, key: &K) -> Option<T>
     where
         K: Hash,
     {
-        let key = generate_hash(&key);
+        let key = generate_hash(key);
         let lock = self.cache.read().await;
         return match lock.get(&key).cloned() {
             Some(cache_entry) => Some(cache_entry.value),
@@ -109,7 +111,15 @@ impl<T: Clone + Send + Sync> GustCache<T> {
                 let mut lock = cache_pointer.write().await;
                 let now = Utc::now();
                 lock.retain(|_, value| now < value.timestamp + offset);
+
+                // Drop lock to stop deadlock
+                drop(lock);
             }
         });
+    }
+
+    pub async fn size(&self) -> usize {
+        let lock = self.cache.read().await;
+        lock.len()
     }
 }

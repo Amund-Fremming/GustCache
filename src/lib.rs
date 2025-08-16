@@ -1,10 +1,4 @@
-#![allow(dead_code)]
+mod core;
+mod tests;
 
-pub mod cache;
-pub mod common;
-pub mod error;
-mod test;
-
-pub use cache::*;
-pub use common::*;
-pub use error::*;
+pub use core::*;
