@@ -12,9 +12,23 @@ mod test {
         Ok("failure-fn".to_string())
     }
 
+    async fn failed_insert_fn() -> Result<String, CacheError> {
+        tokio::time::sleep(TokioTime::from_nanos(1)).await;
+        Ok("failure-insert".to_string())
+    }
+
     #[tokio::test]
     async fn invalidate_successfull() {
-        assert!(true);
+        let mut cache: GustCache<String> = GustCache::from_ttl(ChronoTime::seconds(1));
+
+        cache.insert(&1, "value 1".into()).await;
+        cache.insert(&2, "value 2".into()).await;
+        cache.insert(&3, "value 3".into()).await;
+
+        cache.invalidate().await;
+        let size = cache.size().await;
+
+        assert_eq!(0, size);
     }
 
     #[tokio::test]
@@ -28,11 +42,18 @@ mod test {
 
     #[tokio::test]
     async fn get_or_hits_cache() {
+        // Manual insert
         let cache: GustCache<String> = GustCache::from_ttl(ChronoTime::seconds(1));
-        cache.insert(&1, "cache-hit".to_string()).await;
+        cache.insert(&1, "manual-insert".to_string()).await;
         let result = cache.get_or(&1, || failure_fn()).await.unwrap();
 
-        assert_eq!("cache-hit".to_string(), result);
+        assert_eq!("manual-insert".to_string(), result);
+
+        // Insert by failed hit
+        cache.get_or(&10, || failed_insert_fn()).await.unwrap();
+        let result = cache.get_or(&10, || failure_fn()).await.unwrap();
+
+        assert_eq!("failure-insert".to_string(), result);
     }
 
     #[tokio::test]
@@ -64,7 +85,24 @@ mod test {
     }
 
     #[tokio::test]
-    async fn x() {
-        assert!(true);
+    async fn insert_and_get_successfull() {
+        // Insert
+        let cache: GustCache<String> = GustCache::new();
+        cache.insert(&1, "manual-insert".to_string()).await;
+        let size = cache.size().await;
+
+        assert_eq!(1, size);
+
+        // Get
+        let result = cache.try_get(&1).await.unwrap();
+        assert_eq!(result, "manual-insert".to_string());
+    }
+
+    #[tokio::test]
+    async fn get_should_be_none() {
+        let cache: GustCache<String> = GustCache::new();
+        let result = cache.try_get(&1).await;
+
+        assert!(result.is_none());
     }
 }

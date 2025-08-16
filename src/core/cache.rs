@@ -1,7 +1,7 @@
 use std::{collections::HashMap, hash::Hash, sync::Arc};
 
 use chrono::{DateTime, Utc};
-use tokio::sync::RwLock;
+use tokio::{sync::RwLock, task::JoinHandle};
 
 use crate::generate_hash;
 
@@ -15,33 +15,40 @@ struct CacheEntry<T: Clone + Sync + 'static> {
 pub struct GustCache<T: Clone + Send + Sync + 'static> {
     cache: Arc<RwLock<HashMap<u64, CacheEntry<T>>>>,
     ttl: chrono::Duration,
+    cleanup_task: Option<JoinHandle<()>>,
 }
 
 impl<T: Clone + Send + Sync> GustCache<T> {
     pub fn new() -> Self {
-        let cache = Self {
+        let mut cache = Self {
             cache: Arc::new(RwLock::new(HashMap::new())),
             ttl: chrono::Duration::minutes(2),
+            cleanup_task: None,
         };
         cache.spawn_cleanup();
         cache
     }
 
     pub fn from_ttl(ttl: chrono::Duration) -> Self {
-        let cache = Self {
+        let mut cache = Self {
             cache: Arc::new(RwLock::new(HashMap::new())),
             ttl,
+            cleanup_task: None,
         };
         cache.spawn_cleanup();
         cache
     }
 
     pub async fn invalidate(&mut self) {
-        let cache = GustCache {
-            cache: Arc::new(RwLock::new(HashMap::new())),
-            ttl: chrono::Duration::minutes(2),
-        };
-        *self = cache;
+        if let Some(task) = self.cleanup_task.take() {
+            task.abort();
+        }
+
+        {
+            let mut lock = self.cache.write().await;
+            lock.clear();
+        }
+
         self.spawn_cleanup();
     }
 
@@ -99,7 +106,7 @@ impl<T: Clone + Send + Sync> GustCache<T> {
         };
     }
 
-    fn spawn_cleanup(&self) {
+    fn spawn_cleanup(&mut self) {
         let interval_seconds = self.ttl.num_seconds() as u64 * 10;
         let interval = tokio::time::Duration::from_secs(interval_seconds);
         let mut ticker = tokio::time::interval(interval);
@@ -107,7 +114,7 @@ impl<T: Clone + Send + Sync> GustCache<T> {
 
         let offset = self.ttl.clone();
 
-        tokio::spawn(async move {
+        self.cleanup_task = Some(tokio::spawn(async move {
             loop {
                 ticker.tick().await;
                 let mut lock = cache_pointer.write().await;
@@ -117,7 +124,7 @@ impl<T: Clone + Send + Sync> GustCache<T> {
                 // Drop lock to avoid deadlocks
                 drop(lock);
             }
-        });
+        }));
     }
 
     pub async fn size(&self) -> usize {
