@@ -3,7 +3,7 @@ use std::{collections::HashMap, hash::Hash, sync::Arc};
 use chrono::{DateTime, Utc};
 use tokio::{sync::RwLock, task::JoinHandle};
 
-use crate::{CacheEntry, ChronoTime, MAX_BYTE_SIZE, TokioTime, generate_hash};
+use crate::{CacheEntry, ChronoTime, MAX_BYTE_SIZE, TokioTime, core::common::generate_hash};
 
 #[derive(Debug)]
 pub struct GustCache<T: Clone + Send + Sync + 'static> {
