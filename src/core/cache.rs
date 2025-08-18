@@ -27,7 +27,7 @@ impl<T: Clone + Send + Sync> GustCache<T> {
         cache
     }
 
-    pub fn new() -> Self {
+    pub fn from_default() -> Self {
         Self::setup(ChronoTime::minutes(2))
     }
 
@@ -97,7 +97,10 @@ impl<T: Clone + Send + Sync> GustCache<T> {
     }
 
     fn spawn_cleanup(&mut self) {
-        let interval_seconds = self.ttl.num_seconds() as u64 * 10;
+        let mut interval_seconds = (self.ttl.num_seconds() / 2) as u64;
+        if interval_seconds == 0 {
+            interval_seconds = 1;
+        }
         let interval = TokioTime::from_secs(interval_seconds);
         let mut ticker = tokio::time::interval(interval);
         let cache_pointer = self.cache.clone();

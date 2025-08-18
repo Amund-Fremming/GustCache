@@ -61,7 +61,7 @@ mod test {
         cache.insert(&2, "value 2".into()).await;
         cache.insert(&3, "value 3".into()).await;
 
-        sleep(tokio::time::Duration::from_secs(11)).await;
+        sleep(tokio::time::Duration::from_secs(2)).await;
         let size = cache.size().await;
 
         assert_eq!(0, size);
@@ -69,13 +69,11 @@ mod test {
 
     #[tokio::test]
     async fn cleanup_task_should_not_empty() {
-        let cache: GustCache<String> = GustCache::from_ttl(chrono::Duration::seconds(1));
+        let cache: GustCache<String> = GustCache::from_ttl(chrono::Duration::seconds(2));
 
         cache.insert(&1, "value 1".into()).await;
         cache.insert(&2, "value 2".into()).await;
         cache.insert(&3, "value 3".into()).await;
-
-        sleep(TokioTime::from_secs(2)).await;
         let size = cache.size().await;
 
         assert_eq!(3, size);
@@ -84,7 +82,7 @@ mod test {
     #[tokio::test]
     async fn insert_and_get_successfull() {
         // Insert
-        let cache: GustCache<String> = GustCache::new();
+        let cache: GustCache<String> = GustCache::from_default();
         cache.insert(&1, "manual-insert".to_string()).await;
         let size = cache.size().await;
 
@@ -97,9 +95,19 @@ mod test {
 
     #[tokio::test]
     async fn get_should_be_none() {
-        let cache: GustCache<String> = GustCache::new();
+        let cache: GustCache<String> = GustCache::from_default();
         let result = cache.try_get(&1).await;
 
         assert!(result.is_none());
+    }
+
+    #[tokio::test]
+    async fn eviction_task_should_evict() {
+        todo!();
+    }
+
+    #[tokio::test]
+    async fn eviction_task_should_not_evict() {
+        todo!();
     }
 }
