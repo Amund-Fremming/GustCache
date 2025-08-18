@@ -1,2 +1,2 @@
-pub mod cache;
-pub mod hash;
+pub(crate) mod cache;
+pub(crate) mod hash;

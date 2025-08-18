@@ -2,10 +2,7 @@
 mod test {
     use tokio::time::sleep;
 
-    use crate::{CacheError, GustCache};
-
-    type TokioTime = tokio::time::Duration;
-    type ChronoTime = chrono::Duration;
+    use crate::{CacheError, ChronoTime, GustCache, TokioTime};
 
     async fn failure_fn() -> Result<String, CacheError> {
         tokio::time::sleep(TokioTime::from_nanos(1)).await;
