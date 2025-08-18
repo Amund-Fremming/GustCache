@@ -82,7 +82,7 @@ mod test {
     #[tokio::test]
     async fn insert_and_get_successfull() {
         // Insert
-        let cache: GustCache<String> = GustCache::from_default();
+        let cache: GustCache<String> = GustCache::new();
         cache.insert(&1, "manual-insert".to_string()).await;
         let size = cache.size().await;
 
@@ -95,7 +95,7 @@ mod test {
 
     #[tokio::test]
     async fn get_should_be_none() {
-        let cache: GustCache<String> = GustCache::from_default();
+        let cache: GustCache<String> = GustCache::new();
         let result = cache.try_get(&1).await;
 
         assert!(result.is_none());

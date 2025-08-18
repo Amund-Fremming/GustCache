@@ -14,6 +14,19 @@ pub struct GustCache<T: Clone + Send + Sync + 'static> {
 }
 
 impl<T: Clone + Send + Sync> GustCache<T> {
+    pub fn new() -> Self {
+        Self::setup(ChronoTime::minutes(2))
+    }
+
+    pub fn from_ttl(ttl: chrono::Duration) -> Self {
+        Self::setup(ttl)
+    }
+
+    pub async fn size(&self) -> usize {
+        let lock = self.cache.read().await;
+        lock.len()
+    }
+
     fn setup(ttl: ChronoTime) -> Self {
         let mut cache = Self {
             cache: Arc::new(RwLock::new(HashMap::new())),
@@ -25,14 +38,6 @@ impl<T: Clone + Send + Sync> GustCache<T> {
         cache.spawn_cleanup();
         cache.spawn_eviction();
         cache
-    }
-
-    pub fn from_default() -> Self {
-        Self::setup(ChronoTime::minutes(2))
-    }
-
-    pub fn from_ttl(ttl: chrono::Duration) -> Self {
-        Self::setup(ttl)
     }
 
     pub async fn invalidate(&mut self) {
@@ -164,10 +169,5 @@ impl<T: Clone + Send + Sync> GustCache<T> {
                 drop(lock);
             }
         }));
-    }
-
-    pub async fn size(&self) -> usize {
-        let lock = self.cache.read().await;
-        lock.len()
     }
 }
