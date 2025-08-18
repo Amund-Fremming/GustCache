@@ -22,9 +22,9 @@ gustcache = { git = "https://github.com/Amund-Fremming/GustCache.git" }
 ```rust
 use gustcache::GustCache;
 
-let spin_cache = GustCache::from_ttl(chrono::Duration::minutes(2));
+let cache: GustCache<String> = GustCache::from_ttl(chrono::Duration::minutes(2));
 // or
-let spin_cache = GustCache::new();
+let cache: GustCache<String> = GustCache::new();
 ```
 
 ### 3. Use it
@@ -33,6 +33,23 @@ Pass in a key (hashed internally) and a fallback function for cache misses.
 If a valid cached value exists, it’s returned instantly. Otherwise, the fallback runs (e.g., hitting your database).
 
 ```rust
-let spinners = CACHE.get(&request, || get_spin_page(state.get_pool(), &request))
-    .await?;
+let page = CACHE.get(&key, || get_page(&key)).await?;
+```
+
+Insert manually
+
+```rust
+cache.insert(&key, value).await;
+```
+
+Retrieve manually
+
+```rust
+let option = cache.try_get(&key).await;
+```
+
+Invalidate all entries
+
+```rust
+cache.invalidate();
 ```
